@@ -3,6 +3,7 @@ Personalised installation tool after basic distro install (based on apt/flatpak)
 
 + Made for Linux distros based on APT as a package manager (i.e. Debian, Ubuntu, Pop_OS! etc.)
 + Written in C with `ncurses` library for easy menu navigation
++ Based on coding examples in the NCURSES Howto by Pradeep Padala, v1.9 from 2005
 + Relies mainly on function `system()` to call shell commands for installing, updating, unzipping etc.
 + Uses `wget` to download fonts as ZIP archives and unzips them to `~/.local/share/fonts`
 + Runs `fc-cache` after font installation
