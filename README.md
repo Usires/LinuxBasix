@@ -8,6 +8,7 @@ Personalised installation tool after basic distro install (based on apt/flatpak)
 + Runs `fc-cache` after font installation
 
 ## Installed APT Packages
++ 1password (via AgileBits repo, will be added)
 + htop
 + mc
 + gdu

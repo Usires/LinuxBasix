@@ -1,14 +1,14 @@
 #include <stdlib.h>
 #include <ncurses.h>
 
-#define WIDTH 50
+#define WIDTH 55
 #define HEIGHT 11
 
 int startx = 0;
 int starty = 0;
 
 char *choices[] = { 
-			"Install 1password (via AgileBits repo)",
+			"Install 1password with apt (via AgileBits repo)",
 			"Install apps with apt (incl. flatpak)",
 			"Install apps with flatpak",
 			"Install additional fonts",
@@ -48,20 +48,21 @@ menu_start:
 	init_pair(1, COLOR_BLUE, COLOR_BLACK);
 	init_pair(2, COLOR_GREEN, COLOR_BLACK);
 	init_pair(3, COLOR_BLACK, COLOR_WHITE);
-	init_pair(4, COLOR_BLACK, COLOR_CYAN);
+	init_pair(4, COLOR_WHITE, COLOR_GREEN);
 	clear();
 	noecho();       // Key entries are not echoed
 	cbreak();	// Line buffering disabled. pass on everything
 	curs_set(0);    // Hide cursor
 	startx = 5;
-	starty = 2;
+	starty = 4;
 		
 	menu_win = newwin(HEIGHT, WIDTH, starty, startx);
 
 	keypad(menu_win, TRUE);
 	attron(COLOR_PAIR(1) | A_REVERSE | A_BOLD);
 	mvprintw(0, 0, "LinuxBasics 1.1 -- Use arrow keys to go up and down, press enter to select.");
-	attroff(COLOR_PAIR(1));
+	attroff(COLOR_PAIR(1) | A_REVERSE | A_BOLD);
+	mvprintw(1, 0, "Made in pure C with %s. (c) 2023 by Dirk Steiger.", curses_version());
 	refresh();
 	
 	print_menu(menu_win, highlight);
@@ -146,8 +147,10 @@ menu_start:
 			wrefresh(select_win);
 			break;
 		default:
-			// refresh();
+			delwin(menu_win);
+			delwin(select_win);
 			endwin();
+			clear();
 			return 0;
 	}
 	
