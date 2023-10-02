@@ -1,4 +1,3 @@
-
 #include <stdlib.h>
 #include <ncurses.h>
 
@@ -10,11 +9,11 @@ int starty = 0;
 
 char *choices[] = { 
 			"Install 1password (via AgileBits repo)",
-			"Install basics with apt (incl. flatpak)",
-			"Install basics with flatpak",
+			"Install apps with apt (incl. flatpak)",
+			"Install apps with flatpak",
 			"Install additional fonts",
-			"Show and preselect apt packages",
-			"Show and preselect flatpak packages",
+			"Show and select apt packages",
+			"Show and select flatpak packages",
 			"Exit",
 		  };
 
@@ -48,17 +47,20 @@ menu_start:
 	start_color();
 	init_pair(1, COLOR_BLUE, COLOR_BLACK);
 	init_pair(2, COLOR_GREEN, COLOR_BLACK);
+	init_pair(3, COLOR_BLACK, COLOR_WHITE);
+	init_pair(4, COLOR_BLACK, COLOR_CYAN);
 	clear();
-	noecho();
-	cbreak();	/* Line buffering disabled. pass on everything */
-	startx = (80 - WIDTH) / 3;
-	starty = (24 - HEIGHT) / 3;
+	noecho();       // Key entries are not echoed
+	cbreak();	// Line buffering disabled. pass on everything
+	curs_set(0);    // Hide cursor
+	startx = 5;
+	starty = 2;
 		
 	menu_win = newwin(HEIGHT, WIDTH, starty, startx);
 
 	keypad(menu_win, TRUE);
 	attron(COLOR_PAIR(1) | A_REVERSE | A_BOLD);
-	mvprintw(0, 0, "LinuxBasics 1.1 -- Use arrow keys to go up and down, press enter to select...");
+	mvprintw(0, 0, "LinuxBasics 1.1 -- Use arrow keys to go up and down, press enter to select.");
 	attroff(COLOR_PAIR(1));
 	refresh();
 	
@@ -134,11 +136,13 @@ menu_start:
 		case 5:
 			select_win = newwin(25,40,3,35);
 			box(select_win, 0, 0);
+			wbkgd(select_win, COLOR_PAIR(4));
 			wrefresh(select_win);
 			break;
 		case 6:
 			select_win = newwin(25,40,3,35); 
 			box(select_win, 0, 0);
+			wbkgd(select_win, COLOR_PAIR(4));
 			wrefresh(select_win);
 			break;
 		default:
@@ -161,6 +165,7 @@ void print_menu(WINDOW *menu_win, int highlight)
 	x = 2;
 	y = 2;
 	box(menu_win, 0, 0);
+	wbkgd(menu_win, COLOR_PAIR(3));
 	for(i = 0; i < n_choices; ++i)
 	{	if(highlight == i + 1) /* High light the present choice */
 		{	wattron(menu_win, COLOR_PAIR(2) | A_REVERSE | A_BOLD); 
