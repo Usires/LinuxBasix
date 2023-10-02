@@ -3,7 +3,7 @@
 #include <ncurses.h>
 
 #define WIDTH 50
-#define HEIGHT 10
+#define HEIGHT 11
 
 int startx = 0;
 int starty = 0;
