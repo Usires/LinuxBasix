@@ -2,13 +2,15 @@
 Personalised installation tool after basic distro install (based on apt/flatpak).
 
 + Made for Linux distros based on APT as a package manager (i.e. Debian, Ubuntu, Pop_OS! etc.)
-+ Written in C with `ncurses` library for easy menu navigation
++ Written in C++ with `ncurses` library for easy menu navigation
 + Based on coding examples in the NCURSES Howto by Pradeep Padala, v1.9 from 2005
-+ Relies mainly on function `system()` to call shell commands for installing, updating, unzipping etc.
++ C++ conversion based on Python version, conversion with support of ChatGPT-4o by OpenAI
++ Binary packed with UPX 3.96, (c) 1996-2020 by Markus Oberhumer, Laszlo Molnar & John Reiser
 + Uses `wget` to download fonts as ZIP archives and unzips them to `~/.local/share/fonts`
 + Runs `fc-cache` after font installation
 
-## Installed APT Packages
+## Pre-selected APT Packages
+
 + 1password (via AgileBits repo, will be added)
 + htop
 + mc
@@ -24,9 +26,12 @@ Personalised installation tool after basic distro install (based on apt/flatpak)
 + preload
 + nala
 + gnome-software-plugin-flatpak
++ powertop
++ cmatrix
++ cool-retro-term
 
-## Installed Flatpak packages
-+ ca.desrt.dconf-editor
+## Pre-selected Flatpak packages
+
 + com.github.tchx84.Flatseal
 + com.discordapp.Discord
 + com.ktechpit.colorwall
@@ -42,6 +47,11 @@ Personalised installation tool after basic distro install (based on apt/flatpak)
 + org.mozilla.Thunderbird
 + net.sf.VICE
 + net.fsuae.FS-UAE
++ org.audacityteam.Audacity
++ org.gimp.GIMP
++ org.gnome.Boxes
++ com.transmissionbt.Transmission
++ fr.handbrake.ghb
 
 ## Installed additional fonts
 + JetBrains Mono
