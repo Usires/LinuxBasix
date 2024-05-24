@@ -125,8 +125,6 @@ void execute_code_block(WINDOW* stdscr, int option) {
         commands[1].insert(commands[1].end(), selected_flatpak_programs.begin(), selected_flatpak_programs.end());
     } else if (option == 5) {
         commands = {
-            /* {"sudo", "apt", "update"},
-            {"sudo", "apt", "install", "-y", "curl"}, */
             {"clear"},
             {"sh", "-c", "curl -sS https://downloads.1password.com/linux/keys/1password.asc | sudo gpg --dearmor --output /usr/share/keyrings/1password-archive-keyring.gpg"},
             {"sh", "-c", "echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/amd64 stable main' | sudo tee /etc/apt/sources.list.d/1password.list"},
@@ -143,7 +141,6 @@ void execute_code_block(WINDOW* stdscr, int option) {
             {"wget", "https://github.com/source-foundry/Hack/releases/download/v3.003/Hack-v3.003-ttf.zip"},
             {"wget", "https://download.jetbrains.com/fonts/JetBrainsMono-1.0.3.zip"},
             {"sh", "-c", "for i in *.zip; do unzip -u \"$i\" -d ~/.local/share/fonts && rm \"$i\"; done"},
-            // {"rm", "-v", "*.zip"},
             {"fc-cache", "-r", "-v"}
         };    
      }
@@ -161,34 +158,6 @@ void execute_code_block(WINDOW* stdscr, int option) {
     stdscr = initscr();
     keypad(stdscr, TRUE);
 }
-
-/* void display_apt_programs(WINDOW* stdscr) {
-    std::vector<std::string> sorted_programs = programs_to_install;
-    std::sort(sorted_programs.begin(), sorted_programs.end());
-
-    int height, width;
-    getmaxyx(stdscr, height, width);
-    int win_height = sorted_programs.size() + 8;
-    int win_width = std::max(static_cast<int>(max_element(sorted_programs.begin(), sorted_programs.end(), 
-        [](const std::string& a, const std::string& b){ return a.size() < b.size(); })->size()) + 2, 40);
-
-    WINDOW* win = newwin(win_height, win_width, (height - win_height) / 2, (width - win_width) / 2);
-    box(win, 0, 0);
-    wattron(win, A_BOLD);
-    mvwprintw(win, 1, 1, "APT Programs");
-    wattroff(win, A_BOLD);
-
-    for (size_t i = 0; i < sorted_programs.size(); ++i) {
-        mvwprintw(win, 3 + i, 2, "%s", sorted_programs[i].c_str());
-    }
-
-    mvwprintw(win, win_height - 2, 1, "Press any key to return...");
-    wrefresh(win);
-    wgetch(win);
-    wclear(win);
-    wrefresh(win);
-    delwin(win);
-} */
 
 void select_programs(WINDOW* stdscr, const std::vector<std::string>& programs_to_sort, std::set<std::string>& selected_programs) {
     std::vector<std::string> sorted_programs = programs_to_sort;
@@ -247,118 +216,6 @@ void select_programs(WINDOW* stdscr, const std::vector<std::string>& programs_to
     wrefresh(win);
     delwin(win);
 }
-
-/* void select_apt_programs(WINDOW* stdscr) {
-    std::vector<std::string> sorted_programs = programs_to_install;
-    std::sort(sorted_programs.begin(), sorted_programs.end());
-
-    int height, width;
-    getmaxyx(stdscr, height, width);
-    int win_height = sorted_programs.size() + 6;
-    int win_width = std::max(static_cast<int>(max_element(sorted_programs.begin(), sorted_programs.end(), 
-        [](const std::string& a, const std::string& b){ return a.size() < b.size(); })->size()) + 10, 50);
-
-    WINDOW* win = newwin(win_height, win_width, (height - win_height) / 2, (width - win_width) / 2);
-    keypad(win, TRUE);
-    box(win, 0, 0);
-    wattron(win, A_BOLD);
-    mvwprintw(win, 1, 1, "Select APT Programs");
-    wattroff(win, A_BOLD);
-
-    int highlight = 0;
-    while (true) {
-        for (size_t i = 0; i < sorted_programs.size(); ++i) {
-            if (static_cast<int>(i) == highlight) {
-                wattron(win, A_REVERSE);
-            }
-            if (selected_apt_programs.count(sorted_programs[i])) {
-                mvwprintw(win, 3 + i, 2, "[x] %s", sorted_programs[i].c_str());
-            } else {
-                mvwprintw(win, 3 + i, 2, "[ ] %s", sorted_programs[i].c_str());
-            }
-            wattroff(win, A_REVERSE);
-        }
-
-        mvwprintw(win, win_height - 2, 1, "Press Enter to select/unselect, q to quit");
-        wrefresh(win);
-
-        int key = wgetch(win);
-        if (key == KEY_UP) {
-            highlight = (highlight - 1 + sorted_programs.size()) % sorted_programs.size();
-        } else if (key == KEY_DOWN) {
-            highlight = (highlight + 1) % sorted_programs.size();
-        } else if (key == 10) { // Enter key
-            const std::string& program = sorted_programs[highlight];
-            if (selected_apt_programs.count(program)) {
-                selected_apt_programs.erase(program);
-            } else {
-                selected_apt_programs.insert(program);
-            }
-        } else if (key == 'q') {
-            break;
-        }
-    }
-
-    wclear(win);
-    wrefresh(win);
-    delwin(win);
-} */
-
-/* void select_flatpak_programs(WINDOW* stdscr) {
-    std::vector<std::string> sorted_programs = flatpak_programs_to_install;
-    std::sort(sorted_programs.begin(), sorted_programs.end());
-
-    int height, width;
-    getmaxyx(stdscr, height, width);
-    int win_height = sorted_programs.size() + 6;
-    int win_width = std::max(static_cast<int>(max_element(sorted_programs.begin(), sorted_programs.end(), 
-        [](const std::string& a, const std::string& b){ return a.size() < b.size(); })->size()) + 10, 50);
-
-    WINDOW* win = newwin(win_height, win_width, (height - win_height) / 2, (width - win_width) / 2);
-    keypad(win, TRUE);
-    box(win, 0, 0);
-    wattron(win, A_BOLD);
-    mvwprintw(win, 1, 1, "Select Flatpak Programs");
-    wattroff(win, A_BOLD);
-
-    int highlight = 0;
-    while (true) {
-        for (size_t i = 0; i < sorted_programs.size(); ++i) {
-            if (static_cast<int>(i) == highlight) {
-                wattron(win, A_REVERSE);
-            }
-            if (selected_flatpak_programs.count(sorted_programs[i])) {
-                mvwprintw(win, 3 + i, 2, "[x] %s", sorted_programs[i].c_str());
-            } else {
-                mvwprintw(win, 3 + i, 2, "[ ] %s", sorted_programs[i].c_str());
-            }
-            wattroff(win, A_REVERSE);
-        }
-
-        mvwprintw(win, win_height - 2, 1, "Press Enter to select/unselect, q to quit");
-        wrefresh(win);
-
-        int key = wgetch(win);
-        if (key == KEY_UP) {
-            highlight = (highlight - 1 + sorted_programs.size()) % sorted_programs.size();
-        } else if (key == KEY_DOWN) {
-            highlight = (highlight + 1) % sorted_programs.size();
-        } else if (key == 10) { // Enter key
-            const std::string& program = sorted_programs[highlight];
-            if (selected_flatpak_programs.count(program)) {
-                selected_flatpak_programs.erase(program);
-            } else {
-                selected_flatpak_programs.insert(program);
-            }
-        } else if (key == 'q') {
-            break;
-        }
-    }
-
-    wclear(win);
-    wrefresh(win);
-    delwin(win);
-} */
 
 void main_menu() {
     initscr();
