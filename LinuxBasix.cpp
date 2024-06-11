@@ -44,11 +44,12 @@ std::vector<std::string> main_menu_options = {
 
 void display_main_menu(WINDOW* stdscr, int highlight) {
     wclear(stdscr);
-    init_pair(1, COLOR_WHITE, COLOR_BLUE);
     wbkgd(stdscr, COLOR_PAIR(1));
-    box(stdscr, 0, 0);
+
+    // wborder(stdscr, ACS_VLINE, ACS_VLINE, ACS_HLINE, ACS_HLINE, ACS_ULCORNER, ACS_URCORNER, ACS_LLCORNER, ACS_LRCORNER);
+    // box(stdscr, 0, 0);
     
-    std::string program_name = "LinuxBasix.CPP -- Version 1.0";
+    std::string program_name = "LinuxBasix -- Version 2.0 (C++ edition)";
     attron(A_BOLD);
     mvwprintw(stdscr, 1, 2, "%s", program_name.c_str());
     attroff(A_BOLD);
@@ -69,12 +70,12 @@ void display_main_menu(WINDOW* stdscr, int highlight) {
 
     int height, width;
     getmaxyx(stdscr, height, width);
-    std::string version_info = "Uses ncurses library " + std::string(NCURSES_VERSION);
-    std::string copyright_text = "(c) 2024 github.com/Usires. Made in C++ with the help of ChatGPT-4o.";
-    std::string packer_text = "Packed with UPX 3.96, (c) 1996-2020 by Markus Oberhumer, Laszlo Molnar & John Reiser";
-    mvwprintw(stdscr, height - 4, 2, "%s", packer_text.c_str());
+    std::string version_info = "Uses ncurses library " + std::string(NCURSES_VERSION) + ", © 1993-2024 Free Software Foundation, Inc.";
+    std::string copyright_text = "© 2024 github.com/Usires. Made in C++ with the help of ChatGPT-4o.";
+    std::string packer_text = "Packed with UPX 3.96, © 1996-2020 by Markus Oberhumer, Laszlo Molnar & John Reiser";
+    mvwprintw(stdscr, height - 2, 2, "%s", packer_text.c_str());
     mvwprintw(stdscr, height - 3, 2, "%s", version_info.c_str());
-    mvwprintw(stdscr, height - 2, 2, "%s", copyright_text.c_str());
+    mvwprintw(stdscr, height - 4, 2, "%s", copyright_text.c_str());
 
     wrefresh(stdscr);
 }
@@ -115,16 +116,20 @@ void execute_code_block(WINDOW* stdscr, int option) {
         };
         commands[2].insert(commands[2].end(), selected_apt_programs.begin(), selected_apt_programs.end());
         commands.push_back({"flatpak", "-v", "remote-add", "--if-not-exists", "flathub", "https://dl.flathub.org/repo/flathub.flatpakrepo"});
-    /* else if (option == 3) {
+	/* else if (option == 3) {
         commands = {{"echo", "Returning to Main Menu."}}; */
+
     } else if (option == 4) {
         commands = {
             {"clear"},
             {"flatpak", "install"}
         };
         commands[1].insert(commands[1].end(), selected_flatpak_programs.begin(), selected_flatpak_programs.end());
+
     } else if (option == 5) {
         commands = {
+            /* {"sudo", "apt", "update"},
+            {"sudo", "apt", "install", "-y", "curl"}, */
             {"clear"},
             {"sh", "-c", "curl -sS https://downloads.1password.com/linux/keys/1password.asc | sudo gpg --dearmor --output /usr/share/keyrings/1password-archive-keyring.gpg"},
             {"sh", "-c", "echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/amd64 stable main' | sudo tee /etc/apt/sources.list.d/1password.list"},
@@ -134,13 +139,15 @@ void execute_code_block(WINDOW* stdscr, int option) {
             {"sh", "-c", "curl -sS https://downloads.1password.com/linux/keys/1password.asc | sudo gpg --dearmor --output /usr/share/debsig/keyrings/AC2D62742012EA22/debsig.gpg"},
             {"sh", "-c", "sudo apt update && printf '\\n' && sudo apt install -y 1password"}
         };
-     } else if (option == 6) {
+    
+    } else if (option == 6) {
         commands = {
             {"clear"},
             {"echo", "Installing addtional fonts. \n"},
             {"wget", "https://github.com/source-foundry/Hack/releases/download/v3.003/Hack-v3.003-ttf.zip"},
             {"wget", "https://download.jetbrains.com/fonts/JetBrainsMono-1.0.3.zip"},
             {"sh", "-c", "for i in *.zip; do unzip -u \"$i\" -d ~/.local/share/fonts && rm \"$i\"; done"},
+            // {"rm", "-v", "*.zip"},
             {"fc-cache", "-r", "-v"}
         };    
      }
@@ -159,7 +166,35 @@ void execute_code_block(WINDOW* stdscr, int option) {
     keypad(stdscr, TRUE);
 }
 
-void select_programs(WINDOW* stdscr, const std::vector<std::string>& programs_to_sort, std::set<std::string>& selected_programs) {
+/* void display_apt_programs(WINDOW* stdscr) {
+    std::vector<std::string> sorted_programs = programs_to_install;
+    std::sort(sorted_programs.begin(), sorted_programs.end());
+
+    int height, width;
+    getmaxyx(stdscr, height, width);
+    int win_height = sorted_programs.size() + 8;
+    int win_width = std::max(static_cast<int>(max_element(sorted_programs.begin(), sorted_programs.end(), 
+        [](const std::string& a, const std::string& b){ return a.size() < b.size(); })->size()) + 2, 40);
+
+    WINDOW* win = newwin(win_height, win_width, (height - win_height) / 2, (width - win_width) / 2);
+    box(win, 0, 0);
+    wattron(win, A_BOLD);
+    mvwprintw(win, 1, 1, "APT Programs");
+    wattroff(win, A_BOLD);
+
+    for (size_t i = 0; i < sorted_programs.size(); ++i) {
+        mvwprintw(win, 3 + i, 2, "%s", sorted_programs[i].c_str());
+    }
+
+    mvwprintw(win, win_height - 2, 1, "Press any key to return...");
+    wrefresh(win);
+    wgetch(win);
+    wclear(win);
+    wrefresh(win);
+    delwin(win);
+} */
+
+void select_programs(WINDOW* stdscr, const std::vector<std::string>& programs_to_sort, std::set<std::string>& selected_programs, int menu_color, const std::string& program_type) {
     std::vector<std::string> sorted_programs = programs_to_sort;
     std::sort(sorted_programs.begin(), sorted_programs.end());
 
@@ -169,11 +204,32 @@ void select_programs(WINDOW* stdscr, const std::vector<std::string>& programs_to
     int win_width = std::max(static_cast<int>(std::max_element(sorted_programs.begin(), sorted_programs.end(), 
         [](const std::string& a, const std::string& b){ return a.size() < b.size(); })->size()) + 10, 50);
 
-    WINDOW* win = newwin(win_height, win_width, (height - win_height) / 2, (width - win_width) / 2);
+    int start_y = (height - win_height) / 2;
+    int start_x = (width - win_width) / 2;
+
+    // Create windows (first main, then shadow)
+
+    WINDOW* win = newwin(win_height, win_width, start_y, start_x);
+    WINDOW* shadow_win = newwin(win_height, win_width, start_y + 1, start_x + 2);
+
+    // Draw shadow
+    
+    wattron(shadow_win, COLOR_PAIR(3)); // Color pair 3 is the shadow color
+    
+    for (int i = 0; i < win_height; ++i) {
+        for (int j = 0; j < win_width; ++j) {
+            mvwaddch(shadow_win, i, j, ' ');
+        }
+    }
+    
+    wattroff(shadow_win, COLOR_PAIR(3));
+    wrefresh(shadow_win);
+
     keypad(win, TRUE);
+    wbkgd(win, COLOR_PAIR(menu_color)); 
     box(win, 0, 0);
     wattron(win, A_BOLD);
-    mvwprintw(win, 1, 1, "Select software to install: ");
+    mvwprintw(win, 1, 1, "Select %s to install: ", program_type.c_str());
     wattroff(win, A_BOLD);
 
     int highlight = 0;
@@ -183,7 +239,7 @@ void select_programs(WINDOW* stdscr, const std::vector<std::string>& programs_to
                 wattron(win, A_REVERSE);
             }
             if (selected_programs.count(sorted_programs[i])) {
-                mvwprintw(win, 3 + i, 2, "[x] %s", sorted_programs[i].c_str());
+                mvwprintw(win, 3 + i, 2, "[+] %s", sorted_programs[i].c_str());
             } else {
                 mvwprintw(win, 3 + i, 2, "[ ] %s", sorted_programs[i].c_str());
             }
@@ -215,7 +271,12 @@ void select_programs(WINDOW* stdscr, const std::vector<std::string>& programs_to
     wclear(win);
     wrefresh(win);
     delwin(win);
+
+    wclear(shadow_win);
+    wrefresh(shadow_win);
+    delwin(shadow_win);
 }
+
 
 void main_menu() {
     initscr();
@@ -223,6 +284,12 @@ void main_menu() {
     noecho();
     curs_set(0);
     start_color();
+    
+    init_pair(1, COLOR_WHITE, COLOR_BLUE); // Main menu colors
+    init_pair(2, COLOR_WHITE, COLOR_CYAN); // Sub menu color set 1
+    init_pair(4, COLOR_WHITE, COLOR_MAGENTA); // Sub menu color set 2
+    init_pair(3, COLOR_BLACK, COLOR_BLACK); // Shadow color
+
     WINDOW* stdscr = initscr();
     keypad(stdscr, TRUE);
 
@@ -240,11 +307,11 @@ void main_menu() {
                 break; // Exit the program
             } else {
                 if (highlight_main == 1) {
-                    select_programs(stdscr, programs_to_install, selected_apt_programs);
+                    select_programs(stdscr, programs_to_install, selected_apt_programs, 2, "APTs");
                 } else if (highlight_main == 2) {
                     execute_code_block(stdscr, highlight_main);
                 } else if (highlight_main == 3) {
-                    select_programs(stdscr, flatpak_programs_to_install, selected_flatpak_programs);
+                    select_programs(stdscr, flatpak_programs_to_install, selected_flatpak_programs, 4, "Flatpaks");
                 } else {
                     execute_code_block(stdscr, highlight_main);
                 }
