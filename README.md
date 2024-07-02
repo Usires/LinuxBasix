@@ -1,4 +1,4 @@
-# LinuxBasics
+# LinuxBasix
 Personalised installation tool after basic distro install (based on apt/flatpak).
 
 + Made for Linux distros based on APT as a package manager (i.e. Debian, Ubuntu, Pop_OS! etc.)
