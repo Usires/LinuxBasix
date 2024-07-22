@@ -195,7 +195,7 @@ private:
 
     	// box(stdscr, 0, 0);
     
-   	string program_name = "LinuxBasix // Version 2.1 (C++ edition)";
+   	const string program_name = "LinuxBasix // Version 2.2-240722 (C++ edition)";
     
     	attron(A_BOLD);
     	mvwprintw(stdscr, 1, 2, "%s", program_name.c_str());
@@ -242,16 +242,14 @@ private:
     }
 
     void handle_menu_selection(WINDOW* stdscr, int highlight_main) {
-        if (highlight_main == config.main_menu_options.size()) {
-            return; // Exit the program
+        if (highlight_main == static_cast<int>(config.main_menu_options.size())) {
+            endwin();
+            exit(0); // Exit the program
         }
         
         switch (highlight_main) {
             case 1:
                 select_programs(stdscr, config.programs_to_install, selected_apt_programs, 2, "packages");
-                break;
-            case 2:
-                execute_code_block(stdscr, highlight_main);
                 break;
             case 3:
                 select_programs(stdscr, config.flatpak_programs_to_install, selected_flatpak_programs, 4, "Flatpaks");
@@ -272,83 +270,83 @@ private:
     vector<string> sorted_programs = programs_to_sort;
     sort(sorted_programs.begin(), sorted_programs.end());
 
-    int height, width;
-    getmaxyx(stdscr, height, width);
-    int win_height = min(static_cast<int>(sorted_programs.size()) + 6, height - 2);
-    int win_width = min(max(static_cast<int>(max_element(sorted_programs.begin(), sorted_programs.end(), 
+        int height, width;
+        getmaxyx(stdscr, height, width);
+        int win_height = min(static_cast<int>(sorted_programs.size()) + 6, height - 2);
+        int win_width = min(max(static_cast<int>(max_element(sorted_programs.begin(), sorted_programs.end(), 
         [](const string& a, const string& b){ return a.size() < b.size(); })->size()) + 10, 50), width - 2);
 
-    int start_y = (height - win_height) / 2;
-    int start_x = (width - win_width) / 2;
+        int start_y = (height - win_height) / 2;
+        int start_x = (width - win_width) / 2;
 
-    WINDOW* win = newwin(win_height, win_width, start_y, start_x);
-    WINDOW* shadow_win = newwin(win_height, win_width, start_y + 1, start_x + 2);
+        WINDOW* win = newwin(win_height, win_width, start_y, start_x);
+        WINDOW* shadow_win = newwin(win_height, win_width, start_y + 1, start_x + 2);
 
-    // Draw shadow
-    wattron(shadow_win, COLOR_PAIR(3));
-    wbkgd(shadow_win, COLOR_PAIR(3));
-    for (int i = 0; i < win_height; ++i) {
-        mvwhline(shadow_win, i, 0, ' ', win_width);
-    }
-    wattroff(shadow_win, COLOR_PAIR(3));
-    wrefresh(shadow_win);
+        // Draw shadow
+        wattron(shadow_win, COLOR_PAIR(3));
+        wbkgd(shadow_win, COLOR_PAIR(3));
+        for (int i = 0; i < win_height; ++i) {
+            mvwhline(shadow_win, i, 0, ' ', win_width);
+        }
+        wattroff(shadow_win, COLOR_PAIR(3));
+        wrefresh(shadow_win);
 
-    keypad(win, TRUE);
-    wbkgd(win, COLOR_PAIR(menu_color));
-    box(win, 0, 0);
-    wattron(win, A_BOLD);
-    mvwprintw(win, 1, 1, "Select %s:", program_type.c_str());
-    wattroff(win, A_BOLD);
+        keypad(win, TRUE);
+        wbkgd(win, COLOR_PAIR(menu_color));
+        box(win, 0, 0);
+        wattron(win, A_BOLD);
+        mvwprintw(win, 1, 1, "Select %s:", program_type.c_str());
+        wattroff(win, A_BOLD);
 
-    int highlight = 0;
-    int start_idx = 0;
-    int max_display = win_height - 4;
+        int highlight = 0;
+        int start_idx = 0;
+        int max_display = win_height - 4;
 
-    while (true) {
-        for (int i = 0; i < max_display && (i + start_idx) < static_cast<int>(sorted_programs.size()); ++i) {
-            if (i + start_idx == highlight) {
-                wattron(win, A_REVERSE);
+        while (true) {
+            for (int i = 0; i < max_display && (i + start_idx) < static_cast<int>(sorted_programs.size()); ++i) {
+                if (i + start_idx == highlight) {
+                    wattron(win, A_REVERSE);
+                }
+                string display_str = (selected_programs.count(sorted_programs[i + start_idx]) ? "[+] " : "[ ] ") + sorted_programs[i + start_idx];
+                mvwprintw(win, i + 3, 2, "%-*s", win_width - 4, display_str.c_str());
+                wattroff(win, A_REVERSE);
             }
-            string display_str = (selected_programs.count(sorted_programs[i + start_idx]) ? "[+] " : "[ ] ") + sorted_programs[i + start_idx];
-            mvwprintw(win, i + 3, 2, "%-*s", win_width - 4, display_str.c_str());
-            wattroff(win, A_REVERSE);
-        }
 
-        mvwprintw(win, win_height - 1, 1, "Space: select/unselect, Enter: confirm, q: quit");
-        wrefresh(win);
+            mvwprintw(win, win_height - 1, 1, "Space: select/unselect, Enter: confirm, q: quit");
+            wrefresh(win);
 
-        int key = wgetch(win);
-        switch (key) {
-            case KEY_UP:
-                if (highlight > 0) {
-                    --highlight;
-                    if (highlight < start_idx) --start_idx;
-                }
-                break;
-            case KEY_DOWN:
-                if (highlight < static_cast<int>(sorted_programs.size()) - 1) {
-                    ++highlight;
-                    if (highlight >= start_idx + max_display) ++start_idx;
-                }
-                break;
-            case ' ':
-                {
-                    const string& program = sorted_programs[highlight];
-                    if (selected_programs.count(program)) {
-                        selected_programs.erase(program);
-                    } else {
-                        selected_programs.insert(program);
+            int key = wgetch(win);
+            switch (key) {
+                case KEY_UP:
+                    if (highlight > 0) {
+                        --highlight;
+                        if (highlight < start_idx) --start_idx;
                     }
-                }
-                break;
-            case 10: // Enter key
-            case 'q':
-                delwin(shadow_win);
-                delwin(win);
-                return;
+                    break;
+                case KEY_DOWN:
+                    if (highlight < static_cast<int>(sorted_programs.size()) - 1) {
+                        ++highlight;
+                        if (highlight >= start_idx + max_display) ++start_idx;
+                    }
+                    break;
+                case ' ':
+                    {
+                        const string& program = sorted_programs[highlight];
+                        if (selected_programs.count(program)) {
+                            selected_programs.erase(program);
+                        } else {
+                            selected_programs.insert(program);
+                        }
+                    }
+                    break;
+                case 10: // Enter key
+                case 'q':
+                    delwin(shadow_win);
+                    delwin(win);
+                    return;
+            }   
         }
     }
-}
 
     void execute_code_block(WINDOW* stdscr, int option) {
         wclear(stdscr);
@@ -426,10 +424,26 @@ private:
             return;
         }
 
+        endwin();  // End ncurses mode temporarily
+
         string command = "vim " + bashrc_path;
-        commandExecutor.execute({command});
+        int result = system(command.c_str());  // Store the return value
+        if (result == -1) {
+            cerr << "Error: Failed to execute vim" << endl;
+        } else if (WIFEXITED(result) && WEXITSTATUS(result) != 0) {
+            cerr << "Warning: vim exited with status " << WEXITSTATUS(result) << endl;
+        }
+        cout << "Press any key to return to the main menu...";
+        cin.get();
+        
+        initscr();  // Reinitialize ncurses
+        cbreak();
+        noecho();
+        curs_set(0);
+        refresh();
     }
 };
+
 
 int main(int argc, char *argv[]) {
     Configuration config = {
