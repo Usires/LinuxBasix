@@ -1,5 +1,5 @@
 # LinuxBasix
-Personalised installation tool after basic distro install (based on apt/flatpak).
+Personalised installation tool after basic distro install (based on apt/flatpak), easily portable and quickly compiled on any gcc-compatible environment.
 
 + Made for Linux distros based on APT as a package manager (i.e. Debian, Ubuntu, Pop_OS! etc.)
 + Written in C++ with `ncurses` library for easy menu navigation
@@ -58,7 +58,6 @@ Personalised installation tool after basic distro install (based on apt/flatpak)
 
 + Download the C++ source file to your local machine.
 + Open your terminal app and change into the folder with the source code.
++ Make sure the ncurses libs are installed, i.e. with `sudo apt install libncurses-dev`. 
 + Compile the code: `g++ <name_of_the_source_code.cpp> -lncurses -Os`.
-+ Run the programm with `./a.out`.
-
-
++ Run the program with `./a.out`.
