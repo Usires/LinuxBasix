@@ -1,5 +1,5 @@
 # LinuxBasix
-Personalised installation tool after basic distro install (based on apt/flatpak), easily portable and quickly compiled on any gcc-compatible environment.
+Personalised installation tool for use after basic distro install (based on apt/flatpak). Easily portable and quickly compiled on any gcc-compatible environment.
 
 + Made for Linux distros based on APT as a package manager (i.e. Debian, Ubuntu, Pop_OS! etc.)
 + Written in C++ with `ncurses` library for easy menu navigation
