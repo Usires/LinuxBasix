@@ -3,7 +3,7 @@ Personalised installation tool for use after basic distro install (based on apt/
 
 + Made for Linux distros based on APT as a package manager (i.e. Debian, Ubuntu, Pop_OS! etc.)
 + Written in C++ with `ncurses` library for easy menu navigation
-+ Based on coding examples in the NCURSES Howto by Pradeep Padala, v1.9 from 2005
++ Based on coding examples in the [NCURSES Howto by Pradeep Padala](https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/index.html), v1.9 from 2005
 + C++ conversion based on Python version, conversion with support of Claude 3.5 by Anthropic
 + Uses `wget` to download fonts as ZIP archives and unzips them to `~/.local/share/fonts`
 + Runs `fc-cache` after font installation
