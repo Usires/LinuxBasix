@@ -50,5 +50,15 @@ Personalised installation tool after basic distro install (based on apt/flatpak)
 + fr.handbrake.ghb
 
 ## Installed additional fonts
+
 + JetBrains Mono
 + Hack
+
+## Compiling and usage
+
++ Download the C++ source file to your local machine.
++ Open your terminal app and change into the folder with the source code.
++ Compile the code: 'g++ <name_of_the_source_code.cpp> -lncurses -Os'.
++ Run the programm with './a.out".
+
+
