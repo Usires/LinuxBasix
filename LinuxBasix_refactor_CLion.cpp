@@ -100,8 +100,8 @@ public:
 private:
     bool static commandExists(const string& command)
     {
-        string path = "/usr/bin/" + command;
-        ifstream file(path.c_str());
+        const string path = "/usr/bin/" + command;
+        const ifstream file(path.c_str());
         return file.good();
     }
 };
@@ -221,7 +221,7 @@ private:
     void main_menu(WINDOW* stdscr)
     {
         int highlight_main = 1;
-        int MAIN_MENU_ITEMS = config.main_menu_options.size();
+        const int MAIN_MENU_ITEMS = config.main_menu_options.size();
 
         while (true)
         {
@@ -316,10 +316,10 @@ private:
         int height, width;
         getmaxyx(stdscr, height, width);
 
-        int win_height = 20;
-        int win_width = 60;
-        int start_y = (height - win_height) / 2;
-        int start_x = (width - win_width) / 2;
+        constexpr int win_height = 20;
+        constexpr int win_width = 60;
+        const int start_y = (height - win_height) / 2;
+        const int start_x = (width - win_width) / 2;
 
         WINDOW* popup = newwin(win_height, win_width, start_y, start_x);
         WINDOW* shadow = newwin(win_height, win_width, start_y + 1, start_x + 2);
@@ -612,8 +612,8 @@ private:
 
         endwin(); // End ncurses mode temporarily
 
-        string command = "vim " + bashrc_path;
-        int result = system(command.c_str()); // Store the return value
+        const string command = "vim " + bashrc_path;
+        const int result = system(command.c_str()); // Store the return value
         if (result == -1)
         {
             cerr << "Error: Failed to execute vim" << endl;
