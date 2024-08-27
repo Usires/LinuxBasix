@@ -22,7 +22,7 @@
  * For more information, please visit: https://github.com/Usires
  */
 
-#include <stdio.h>
+#include <cstdio>
 #include <ncurses.h>
 #include <cstdlib>
 #include <vector>
@@ -255,7 +255,7 @@ private:
 
         // box(stdscr, 0, 0);
 
-        const string program_name = R"(LinuxBasix // Version 2.4-240820 (C++ edition))";
+        const string program_name = R"(LinuxBasix // Version 2.4-240827 (C++ edition))";
 
         attron(A_BOLD);
         mvwprintw(stdscr, 1, 2, "%s", program_name.c_str());
