@@ -8,7 +8,15 @@ Personalised installation tool after basic distro install (based on apt/flatpak)
 + Uses `wget` to download fonts as ZIP archives and unzips them to `~/.local/share/fonts`
 + Runs `fc-cache` after font installation
 
-## Pre-selected APT Packages
+## Compiling and usage
+
++ Download the C++ source file to your local machine.
++ Open your terminal app and change into the folder with the source code.
++ Make sure the ncurses libs are installed, i.e. with `sudo apt install libncurses-dev`. 
++ Compile the code: `g++ <name_of_the_source_code.cpp> -lncurses -Os`.
++ Run the program with `./a.out`.
+
+## Pre-selected APT Packages in the code
 
 + 1password (via AgileBits repo, will be added)
 + htop
@@ -27,7 +35,7 @@ Personalised installation tool after basic distro install (based on apt/flatpak)
 + cmatrix
 + cool-retro-term
 
-## Pre-selected Flatpak packages
+## Pre-selected Flatpak packages in the code
 
 + com.github.tchx84.Flatseal
 + com.discordapp.Discord
@@ -54,10 +62,3 @@ Personalised installation tool after basic distro install (based on apt/flatpak)
 + JetBrains Mono
 + Hack
 
-## Compiling and usage
-
-+ Download the C++ source file to your local machine.
-+ Open your terminal app and change into the folder with the source code.
-+ Make sure the ncurses libs are installed, i.e. with `sudo apt install libncurses-dev`. 
-+ Compile the code: `g++ <name_of_the_source_code.cpp> -lncurses -Os`.
-+ Run the program with `./a.out`.
