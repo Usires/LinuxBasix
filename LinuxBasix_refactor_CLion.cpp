@@ -646,7 +646,7 @@ int main(int argc, char* argv[])
             "Install Flatpak packages",
             "Install 1Password (latest) and Fastfetch (v2.21.3)",
             "Install SynthShell scripts (cloning from Github.com)",
-            "Install additional fonts",
+            "Install additional fonts (JetBrains Mono / Hack)",
             "Select package manager for repo packages",
             "Add startup items to ~/.bashrc (with check in Nvim)",
             "Exit (or press 'Q')"
