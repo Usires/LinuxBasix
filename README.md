@@ -1,11 +1,10 @@
-# LinuxBasix
+# LinuxBasix (Rust version)
 Personalised installation tool after basic distro install (based on apt/flatpak).
 
 + Made for Linux distros based on APT as a package manager (i.e. Debian, Ubuntu, Pop_OS! etc.)
 + Written in C++ with `ncurses` library for easy menu navigation
 + Based on coding examples in the NCURSES Howto by Pradeep Padala, v1.9 from 2005
-+ C++ conversion based on Python version, conversion with support of ChatGPT-4o by OpenAI
-+ Binary packed with UPX 3.96, (c) 1996-2020 by Markus Oberhumer, Laszlo Molnar & John Reiser
++ Rust conversion based on C++ version, conversion with support of Claude 3.5 by Anthropic
 + Uses `wget` to download fonts as ZIP archives and unzips them to `~/.local/share/fonts`
 + Runs `fc-cache` after font installation
 
