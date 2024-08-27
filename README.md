@@ -4,8 +4,7 @@ Personalised installation tool after basic distro install (based on apt/flatpak)
 + Made for Linux distros based on APT as a package manager (i.e. Debian, Ubuntu, Pop_OS! etc.)
 + Written in C++ with `ncurses` library for easy menu navigation
 + Based on coding examples in the NCURSES Howto by Pradeep Padala, v1.9 from 2005
-+ C++ conversion based on Python version, conversion with support of ChatGPT-4o by OpenAI
-+ Binary packed with UPX 3.96, (c) 1996-2020 by Markus Oberhumer, Laszlo Molnar & John Reiser
++ C++ conversion based on Python version, conversion with support of Claude 3.5 by Anthropic
 + Uses `wget` to download fonts as ZIP archives and unzips them to `~/.local/share/fonts`
 + Runs `fc-cache` after font installation
 
@@ -21,8 +20,6 @@ Personalised installation tool after basic distro install (based on apt/flatpak)
 + fortune-mod
 + build-essential
 + flatpak
-+ neofetch
-+ cpufetch
 + preload
 + nala
 + gnome-software-plugin-flatpak
@@ -38,7 +35,6 @@ Personalised installation tool after basic distro install (based on apt/flatpak)
 + com.mattjakeman.ExtensionManager
 + com.microsoft.Edge
 + com.valvesoftware.Steam
-+ com.visualstudio.code
 + net.cozic.joplin_desktop
 + net.lutris.Lutris
 + org.DolphinEmu.dolphin-emu
