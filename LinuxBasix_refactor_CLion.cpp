@@ -24,7 +24,10 @@
 
 #include <cstdio>
 #include <ncurses.h>
+#include <clocale>
 #include <cstdlib>
+#include <codecvt>
+#include <utility>
 #include <vector>
 #include <string>
 #include <set>
@@ -33,6 +36,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <fstream>
+#include <locale>
 #include <sys/utsname.h>
 
 using namespace std;
@@ -74,12 +78,12 @@ class RealSystemInfo : public SystemInfo
 public:
     string getKernelVersion() override
     {
-       utsname buffer{};
+        utsname buffer{};
         if (uname(&buffer) != 0)
         {
-            return "Unknown";
+            return {"Unknown"};
         }
-        return basic_string<char>(buffer.release);
+        return {buffer.release};
     }
 
     vector<string> checkPackageManagers() override
@@ -130,6 +134,8 @@ public:
     void execute(const vector<string>& command) override
     {
         vector<char*> args;
+        args.reserve(command.size());
+
         for (const auto& arg : command)
         {
             args.push_back(const_cast<char*>(arg.c_str()));
@@ -172,7 +178,6 @@ string join(const vector<string>& vec, const string& delimiter)
     return result;
 }
 
-
 // LinuxBasix class
 class LinuxBasix
 {
@@ -187,8 +192,8 @@ private:
     vector<string> user_added_programs;
 
 public:
-    LinuxBasix(const Configuration& cfg, SystemInfo& si, FileSystem& fs, CommandExecutor& ce)
-        : config(cfg), systemInfo(si), fileSystem(fs), commandExecutor(ce)
+    LinuxBasix(Configuration  cfg, SystemInfo& si, FileSystem& fs, CommandExecutor& ce)
+        : config(std::move(cfg)), systemInfo(si), fileSystem(fs), commandExecutor(ce)
     {
         selected_flatpak_programs = set<string>(config.flatpak_programs_to_install.begin(),
                                                 config.flatpak_programs_to_install.end());
@@ -201,13 +206,14 @@ public:
         cbreak();
         noecho();
         curs_set(0); // Cursor not visible
+        setlocale(LC_ALL, "UTF8");
         start_color();
 
-        init_pair(1, COLOR_WHITE, COLOR_BLUE);      // Main window
-        init_pair(2, COLOR_WHITE, COLOR_RED);       // Sub menu set #1
-        init_pair(3, COLOR_BLACK, COLOR_BLACK);     // Shadow color
-        init_pair(4, COLOR_WHITE, COLOR_MAGENTA);   // Sub menu set #2
-        init_pair(5, COLOR_WHITE, COLOR_GREEN);     // Sub menu set #3
+        init_pair(1, COLOR_WHITE, COLOR_BLUE); // Main window
+        init_pair(2, COLOR_WHITE, COLOR_RED); // Sub menu set #1
+        init_pair(3, COLOR_BLACK, COLOR_BLACK); // Shadow color
+        init_pair(4, COLOR_WHITE, COLOR_MAGENTA); // Sub menu set #2
+        init_pair(5, COLOR_WHITE, COLOR_GREEN); // Sub menu set #3
 
         WINDOW* stdscr = initscr();
         keypad(stdscr, TRUE);
@@ -221,7 +227,7 @@ private:
     void main_menu(WINDOW* stdscr)
     {
         int highlight_main = 1;
-        const int MAIN_MENU_ITEMS = config.main_menu_options.size();
+        const auto MAIN_MENU_ITEMS = static_cast<int8_t>(config.main_menu_options.size());
 
         while (true)
         {
@@ -248,68 +254,7 @@ private:
         }
     }
 
-    void display_main_menu(WINDOW* stdscr, int highlight) const
-    {
-        wclear(stdscr);
-        wbkgd(stdscr, COLOR_PAIR(1));
-
-        // box(stdscr, 0, 0);
-
-        const string program_name = R"(LinuxBasix // Version 2.4-240827 (C++ edition))";
-
-        attron(A_BOLD);
-        mvwprintw(stdscr, 1, 2, "%s", program_name.c_str());
-        mvwprintw(stdscr, 3, 2, "Main Menu");
-        attroff(A_BOLD);
-
-        for (size_t i = 0; i < config.main_menu_options.size(); ++i)
-        {
-            if (i + 1 == highlight)
-            {
-                wattron(stdscr, A_REVERSE);
-            }
-
-            char letter = 'A' + i;  // Convert number to corresponding letter
-
-            if (i == config.main_menu_options.size() - 1)
-            {
-                // If it's the last item, print it on a line one line apart from the rest
-                mvwprintw(stdscr, 6 + i, 5, "%c.   %s", letter, config.main_menu_options[i].c_str());
-            }
-            else
-            {
-                // For all other items, print normally
-                mvwprintw(stdscr, 5 + i, 5, "%c.   %s", letter, config.main_menu_options[i].c_str());
-            }
-            wattroff(stdscr, A_REVERSE);
-        }
-
-        const int height(getmaxy(stdscr));
-
-        // Get the kernel version
-        string kernelVersion = systemInfo.getKernelVersion();
-
-        // Check for available package managers
-        vector<string> availablePackageManagers = systemInfo.checkPackageManagers();
-
-        string version_info = "Uses ncurses library " + string(NCURSES_VERSION) +
-            ", (c) 1993-2024 Free Software Foundation, Inc.";
-        string copyright_text = "(c) 2024 github.com/Usires. Made in C++ with support of Claude 3.5 and ChatGPT-4o";
-        // string packer_text = "Packed with UPX 3.96, (c) 1996-2020 by Markus Oberhumer, Laszlo Molnar & John Reiser";
-        string kernel = "Current Linux Kernel version: " + string(kernelVersion);
-        string packetmanagers = "Detected packet managers (* = selected): " + join(availablePackageManagers, " | ");
-        string customprograms = "Manually added repo packages: " + join(user_added_programs, " | ");
-
-        // mvwprintw(stdscr, height - 2, 2, "%s", packer_text.c_str());
-        mvwprintw(stdscr, height - 3, 2, "%s", version_info.c_str());
-        mvwprintw(stdscr, height - 4, 2, "%s", copyright_text.c_str());
-        attron(A_BOLD);
-        mvwprintw(stdscr, height - 6, 2, "%s", kernel.c_str());
-        mvwprintw(stdscr, height - 7, 2, "%s", packetmanagers.c_str());
-        mvwprintw(stdscr, height - 8, 2, "%s", customprograms.c_str());
-
-        attroff(A_BOLD);
-    }
+    void display_main_menu(WINDOW* stdscr, int highlight) const;
 
     void add_custom_programs(const WINDOW* stdscr)
     {
@@ -347,9 +292,9 @@ private:
             wattroff(popup, A_BOLD);
 
             echo();
-            curs_set(1);  // Make cursor visible
+            curs_set(1); // Make cursor visible
             mvwgetstr(popup, input_y, 7, program);
-            curs_set(0);  // Hide cursor
+            curs_set(0); // Hide cursor
             noecho();
 
             string prog_str(program);
@@ -404,7 +349,8 @@ private:
         }
     }
 
-    void static select_programs(const WINDOW* stdscr, const vector<string>& programs_to_sort, set<string>& selected_programs,
+    void static select_programs(const WINDOW* stdscr, const vector<string>& programs_to_sort,
+                                set<string>& selected_programs,
                                 int menu_color, const string& program_type)
     {
         vector<string> sorted_programs = programs_to_sort;
@@ -538,7 +484,10 @@ private:
         {
             commands = {
                 {"clear"},
-                {"wget", "https://downloads.1password.com/linux/debian/amd64/stable/1password-latest.deb", "https://github.com/fastfetch-cli/fastfetch/releases/download/2.21.3/fastfetch-linux-amd64.deb"},
+                {
+                    "wget", "https://downloads.1password.com/linux/debian/amd64/stable/1password-latest.deb",
+                    "https://github.com/fastfetch-cli/fastfetch/releases/download/2.21.3/fastfetch-linux-amd64.deb"
+                },
                 {"sh", "-c", "sudo apt-get install ./1password-latest.deb ./fastfetch-linux-amd64.deb"},
                 {"rm", "./1password-latest.deb", "./fastfetch-linux-amd64.deb"}
             };
@@ -579,8 +528,8 @@ private:
         keypad(stdscr, TRUE);
     }
 
-   void append_to_bashrc_and_edit() const
-   {
+    void append_to_bashrc_and_edit() const
+    {
         const char* home = getenv("HOME");
         if (!home)
         {
@@ -594,6 +543,7 @@ private:
             "\n# Added by LinuxBasix",
             "alias ll='ls -la'",
             "alias ls='ls -l'",
+            "alias cd..='cd ..'",
             "fastfetch",
             "echo ''",
             "fortune -s",
@@ -613,8 +563,7 @@ private:
         endwin(); // End ncurses mode temporarily
 
         const string command = "vim " + bashrc_path;
-        const int result = system(command.c_str()); // Store the return value
-        if (result == -1)
+        if (const int result = system(command.c_str()); result == -1)
         {
             cerr << "Error: Failed to execute vim" << endl;
         }
@@ -634,6 +583,83 @@ private:
 };
 
 
+void LinuxBasix::display_main_menu(WINDOW* stdscr, int highlight) const
+{
+    wclear(stdscr);
+    wbkgd(stdscr, COLOR_PAIR(1));
+
+    // box(stdscr, 0, 0);
+
+    const vector<string> ASCII_ART = {
+        " _     _                 ______           _      ",
+        "| |   (_)                | ___ \\         (_)     ",
+        "| |    _ _ __  _   ___  _| |_/ / __ _ ___ ___  __",
+        R"(| |   | | '_ \| | | \ \/ | ___ \/ _` / __| \ \/ /)",
+        "| |___| | | | | |_| |>  <| |_/ | (_| \\__ | |>  < ",
+        R"(\_____|_|_| |_|\__,_/_/\_\____/ \__,_|___|_/_/\_\)"
+    };
+
+    const string program_name = "Version 2.42-240904 (C++ edition)";
+
+    attron(A_BOLD);
+
+    for (size_t i = 0; i < ASCII_ART.size(); ++i) {
+        mvprintw(i + 1, 2, "%s", ASCII_ART[i].c_str());
+    }
+    mvwprintw(stdscr, 6, 55, "%s", program_name.c_str());
+
+    mvwprintw(stdscr, 8, 2, "MAIN MENU");
+    attroff(A_BOLD);
+
+    for (size_t i = 0; i < config.main_menu_options.size(); ++i)
+    {
+        if (i + 1 == highlight)
+        {
+            wattron(stdscr, A_REVERSE);
+        }
+
+        char letter = i < 26 ? static_cast<char>('A' + static_cast<int>(i)) : '?';
+
+        if (i == config.main_menu_options.size() - 1)
+        {
+            // If it's the last item, print it on a line one line apart from the rest
+            mvwprintw(stdscr, static_cast<int>(11 + i), 5, "%c.   %s", letter, config.main_menu_options[i].c_str());
+        }
+        else
+        {
+            // For all other items, print normally
+            mvwprintw(stdscr, static_cast<int>(10 + i), 5, "%c.   %s", letter, config.main_menu_options[i].c_str());
+        }
+        wattroff(stdscr, A_REVERSE);
+    }
+
+    const int height(getmaxy(stdscr));
+
+    // Get the kernel version
+    string kernelVersion = systemInfo.getKernelVersion();
+
+    // Check for available package managers
+    vector<string> availablePackageManagers = systemInfo.checkPackageManagers();
+
+    string version_info = "Uses ncurses library " + string(NCURSES_VERSION) +
+        ", (c) 1993-2024 Free Software Foundation, Inc.";
+    string copyright_text = "(c) 2024 github.com/Usires. Made in C++ with support of Claude 3.5 and ChatGPT-4o";
+    // string packer_text = "Packed with UPX 3.96, (c) 1996-2020 by Markus Oberhumer, Laszlo Molnar & John Reiser";
+    string kernel = "Current Linux Kernel version: " + string(kernelVersion);
+    string packetmanagers = "Detected packet managers (* = selected): " + join(availablePackageManagers, " | ");
+    string customprograms = "Manually added repo packages: " + join(user_added_programs, " | ");
+
+    // mvwprintw(stdscr, height - 2, 2, "%s", packer_text.c_str());
+    mvwprintw(stdscr, height - 3, 2, "%s", version_info.c_str());
+    mvwprintw(stdscr, height - 4, 2, "%s", copyright_text.c_str());
+    attron(A_BOLD);
+    mvwprintw(stdscr, height - 6, 2, "%s", kernel.c_str());
+    mvwprintw(stdscr, height - 7, 2, "%s", packetmanagers.c_str());
+    mvwprintw(stdscr, height - 8, 2, "%s", customprograms.c_str());
+
+    attroff(A_BOLD);
+}
+
 int main(int argc, char* argv[])
 {
     Configuration config = {
@@ -649,6 +675,7 @@ int main(int argc, char* argv[])
             "Install additional fonts (JetBrains Mono / Hack)",
             "Select package manager for repo packages",
             "Add startup items to ~/.bashrc (with check in Nvim)",
+            "Add padding for GTK 3.0/4.0 terminal windows (CSS patch, 10 pixels)",
             "Exit (or press 'Q')"
         },
         // programs_to_install
