@@ -26,7 +26,6 @@
 #include <ncurses.h>
 #include <clocale>
 #include <cstdlib>
-#include <codecvt>
 #include <utility>
 #include <vector>
 #include <string>
@@ -36,7 +35,6 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <fstream>
-#include <locale>
 #include <sys/utsname.h>
 
 using namespace std;
@@ -73,7 +71,7 @@ public:
 };
 
 // Concrete implementations
-class RealSystemInfo : public SystemInfo
+class RealSystemInfo final : public SystemInfo
 {
 public:
     string getKernelVersion() override
@@ -110,7 +108,7 @@ private:
     }
 };
 
-class RealFileSystem : public FileSystem
+class RealFileSystem final : public FileSystem
 {
 public:
     bool appendToFile(const string& filename, const vector<string>& lines) override
@@ -128,7 +126,7 @@ public:
     }
 };
 
-class RealCommandExecutor : public CommandExecutor
+class RealCommandExecutor final : public CommandExecutor
 {
 public:
     void execute(const vector<string>& command) override
@@ -142,8 +140,7 @@ public:
         }
         args.push_back(nullptr);
 
-        pid_t pid = fork();
-        if (pid == 0)
+        if (const pid_t pid = fork(); pid == 0)
         {
             execvp(args[0], args.data());
             perror("execvp");
@@ -181,7 +178,6 @@ string join(const vector<string>& vec, const string& delimiter)
 // LinuxBasix class
 class LinuxBasix
 {
-private:
     Configuration config;
     SystemInfo& systemInfo;
     FileSystem& fileSystem;
@@ -193,11 +189,11 @@ private:
 
 public:
     LinuxBasix(Configuration  cfg, SystemInfo& si, FileSystem& fs, CommandExecutor& ce)
-        : config(std::move(cfg)), systemInfo(si), fileSystem(fs), commandExecutor(ce)
+        : config(move(cfg)), systemInfo(si), fileSystem(fs), commandExecutor(ce)
     {
-        selected_flatpak_programs = set<string>(config.flatpak_programs_to_install.begin(),
+        selected_flatpak_programs = set(config.flatpak_programs_to_install.begin(),
                                                 config.flatpak_programs_to_install.end());
-        selected_apt_programs = set<string>(config.programs_to_install.begin(), config.programs_to_install.end());
+        selected_apt_programs = set(config.programs_to_install.begin(), config.programs_to_install.end());
     }
 
     void run()
@@ -282,11 +278,11 @@ private:
         wattroff(popup, A_BOLD);
 
         int input_y = 5;
-        mvwhline(popup, input_y, 2, '_', win_width - 4); // Dottet line to type on
+        mvwhline(popup, input_y, 2, '_', win_width - 4); // Dotted line to type on
 
         while (user_added_programs.size() < 21)
         {
-            char program[50] = {0};
+            char program[50] = {};
             wattron(popup, A_BOLD);
             mvwprintw(popup, input_y, 2, "[%lu]  ", user_added_programs.size() + 1);
             wattroff(popup, A_BOLD);
@@ -311,7 +307,7 @@ private:
                 input_y += 2;
                 if (input_y >= win_height - 3) input_y = 5;
             }
-            mvwhline(popup, input_y, 2, '_', win_width - 4); // Dottet line to type on
+            mvwhline(popup, input_y, 2, '_', win_width - 4); // Dotted line to type on
         }
 
         delwin(shadow);
@@ -351,22 +347,22 @@ private:
 
     void static select_programs(const WINDOW* stdscr, const vector<string>& programs_to_sort,
                                 set<string>& selected_programs,
-                                int menu_color, const string& program_type)
+                                const int menu_color, const string& program_type)
     {
         vector<string> sorted_programs = programs_to_sort;
         sort(sorted_programs.begin(), sorted_programs.end());
 
         int height, width;
         getmaxyx(stdscr, height, width);
-        int win_height = min(static_cast<int>(sorted_programs.size()) + 6, height - 2);
-        int win_width = min(max(static_cast<int>(max_element(sorted_programs.begin(), sorted_programs.end(),
-                                                             [](const string& a, const string& b)
-                                                             {
-                                                                 return a.size() < b.size();
-                                                             })->size()) + 10, 50), width - 2);
+        const int win_height = min(static_cast<int>(sorted_programs.size()) + 6, height - 2);
+        const int win_width = min(max(static_cast<int>(max_element(sorted_programs.begin(), sorted_programs.end(),
+                                                                   [](const string& a, const string& b)
+                                                                   {
+                                                                       return a.size() < b.size();
+                                                                   })->size()) + 10, 50), width - 2);
 
-        int start_y = (height - win_height) / 2;
-        int start_x = (width - win_width) / 2;
+        const int start_y = (height - win_height) / 2;
+        const int start_x = (width - win_width) / 2;
 
         WINDOW* win = newwin(win_height, win_width, start_y, start_x);
         WINDOW* shadow_win = newwin(win_height, win_width, start_y + 1, start_x + 2);
@@ -390,11 +386,11 @@ private:
 
         int highlight = 0;
         int start_idx = 0;
-        int max_display = win_height - 4;
+        const int max_display = win_height - 4;
 
         while (true)
         {
-            for (int i = 0; i < max_display && (i + start_idx) < static_cast<int>(sorted_programs.size()); ++i)
+            for (int i = 0; i < max_display && i + start_idx < static_cast<int>(sorted_programs.size()); ++i)
             {
                 if (i + start_idx == highlight)
                 {
@@ -427,8 +423,7 @@ private:
                 break;
             case ' ':
                 {
-                    const string& program = sorted_programs[highlight];
-                    if (selected_programs.count(program))
+                    if (const string& program = sorted_programs[highlight]; selected_programs.count(program))
                     {
                         selected_programs.erase(program);
                     }
@@ -449,7 +444,7 @@ private:
         }
     }
 
-    void execute_code_block(WINDOW* stdscr, int option)
+    void execute_code_block(WINDOW* stdscr, const int option)
     {
         wclear(stdscr);
         wrefresh(stdscr);
@@ -498,8 +493,7 @@ private:
                 {"clear"},
                 {"echo", "Installing SynthShell from Github.com \n\n"},
                 {"git", "clone", "--recursive", "https://github.com/andresgongora/synth-shell.git"},
-                {"cd", "./synth-shell"},
-                {"./setup.sh"}
+                {"sh", "-c", "cd ./synth-shell && ./setup.sh"}
             };
         }
         else if (option == 8)
@@ -537,9 +531,9 @@ private:
             return;
         }
 
-        string bashrc_path = string(home) + "/.bashrc";
+        const string bashrc_path = string(home) + "/.bashrc";
 
-        vector<string> lines_to_add = {
+        const vector<string> lines_to_add = {
             "\n# Added by LinuxBasix",
             "alias ll='ls -la'",
             "alias ls='ls -l'",
@@ -582,8 +576,7 @@ private:
     }
 };
 
-
-void LinuxBasix::display_main_menu(WINDOW* stdscr, int highlight) const
+void LinuxBasix::display_main_menu(WINDOW* stdscr, const int highlight) const
 {
     wclear(stdscr);
     wbkgd(stdscr, COLOR_PAIR(1));
@@ -599,14 +592,14 @@ void LinuxBasix::display_main_menu(WINDOW* stdscr, int highlight) const
         R"(\_____|_|_| |_|\__,_/_/\_\____/ \__,_|___|_/_/\_\)"
     };
 
-    const string program_name = "Version 2.42-240904 (C++ edition)";
+    const string program_name = "Version 2.42-240904";
 
     attron(A_BOLD);
 
     for (size_t i = 0; i < ASCII_ART.size(); ++i) {
-        mvprintw(i + 1, 2, "%s", ASCII_ART[i].c_str());
+        mvprintw(static_cast<int>(i) + 1, 2, "%s", ASCII_ART[i].c_str());
     }
-    mvwprintw(stdscr, 6, 55, "%s", program_name.c_str());
+    mvwprintw(stdscr, 6, 52, "%s", program_name.c_str());
 
     mvwprintw(stdscr, 8, 2, "MAIN MENU");
     attroff(A_BOLD);
@@ -618,7 +611,7 @@ void LinuxBasix::display_main_menu(WINDOW* stdscr, int highlight) const
             wattron(stdscr, A_REVERSE);
         }
 
-        char letter = i < 26 ? static_cast<char>('A' + static_cast<int>(i)) : '?';
+        const char letter = i < 26 ? static_cast<char>('A' + static_cast<int>(i)) : '?';
 
         if (i == config.main_menu_options.size() - 1)
         {
@@ -639,15 +632,15 @@ void LinuxBasix::display_main_menu(WINDOW* stdscr, int highlight) const
     string kernelVersion = systemInfo.getKernelVersion();
 
     // Check for available package managers
-    vector<string> availablePackageManagers = systemInfo.checkPackageManagers();
+    const vector<string> availablePackageManagers = systemInfo.checkPackageManagers();
 
-    string version_info = "Uses ncurses library " + string(NCURSES_VERSION) +
+    const string version_info = "Uses ncurses library " + string(NCURSES_VERSION) +
         ", (c) 1993-2024 Free Software Foundation, Inc.";
-    string copyright_text = "(c) 2024 github.com/Usires. Made in C++ with support of Claude 3.5 and ChatGPT-4o";
+    const string copyright_text = "(c) 2024 github.com/Usires. Made in C++ with support of Claude 3.5 and ChatGPT-4o";
     // string packer_text = "Packed with UPX 3.96, (c) 1996-2020 by Markus Oberhumer, Laszlo Molnar & John Reiser";
-    string kernel = "Current Linux Kernel version: " + string(kernelVersion);
-    string packetmanagers = "Detected packet managers (* = selected): " + join(availablePackageManagers, " | ");
-    string customprograms = "Manually added repo packages: " + join(user_added_programs, " | ");
+    const string kernel = "Current Linux Kernel version: " + string(kernelVersion);
+    const string packetmanagers = "Detected packet managers (* = selected): " + join(availablePackageManagers, " | ");
+    const string customprograms = "Manually added repo packages: " + join(user_added_programs, " | ");
 
     // mvwprintw(stdscr, height - 2, 2, "%s", packer_text.c_str());
     mvwprintw(stdscr, height - 3, 2, "%s", version_info.c_str());
@@ -660,9 +653,9 @@ void LinuxBasix::display_main_menu(WINDOW* stdscr, int highlight) const
     attroff(A_BOLD);
 }
 
-int main(int argc, char* argv[])
+int main() // int argc, char* argv[] -- for future cli options, not implemented yet
 {
-    Configuration config = {
+    const Configuration config = {
         // main_menu_options
         {
             "Select original repo packages",
@@ -675,7 +668,7 @@ int main(int argc, char* argv[])
             "Install additional fonts (JetBrains Mono / Hack)",
             "Select package manager for repo packages",
             "Add startup items to ~/.bashrc (with check in Nvim)",
-            "Add padding for GTK 3.0/4.0 terminal windows (CSS patch, 10 pixels)",
+            "Add padding for GTK 3.0/4.0 terminal emulators (CSS patch, 10 pixels)",
             "Exit (or press 'Q')"
         },
         // programs_to_install
